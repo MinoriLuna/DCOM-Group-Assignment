@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="DCOM-Group-Assignment" />
+        <module name="hrm-rmi-proto" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="DCOM-Group-Assignment" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>

@@ -1,22 +1,16 @@
 package com.bhel.hrm.client;
 
 import com.bhel.hrm.model.Employee;
+import com.bhel.hrm.model.LeaveApplication;
 import com.bhel.hrm.remote.HRMService;
 
-import java.io.Serializable;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.time.LocalDate;
 import java.util.Scanner;
-import java.util.UUID;
 
 public class ClientMain {
     public static void main(String[] args) {
         try {
-            // Optional: set truststore if using SSL
-            // System.setProperty("javax.net.ssl.trustStore", "clienttruststore.jks");
-            // System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
-
             Registry reg = LocateRegistry.getRegistry("localhost", 1099);
             HRMService svc = (HRMService) reg.lookup("HRMService");
 
@@ -64,46 +58,3 @@ public class ClientMain {
         }
     }
 }
-package com.bhel.hrm.model;;
-
-import java.io.Serializable;
-import java.time.LocalDate;
-import java.util.UUID;
-
-public class LeaveApplication implements Serializable {
-    private static final long serialVersionUID = 1L;
-
-    public enum Status {PENDING, APPROVED, REJECTED}
-
-    private final String id = UUID.randomUUID().toString();
-    private final LocalDate appliedOn = LocalDate.now();
-    private final int days;
-    private Status status = Status.PENDING;
-
-        public LeaveApplication(int days) {
-        this.days = days;
-    }plication(int days) {
-        this.days = days;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public LocalDate getAppliedOn() {
-        return appliedOn;
-    }
-
-    public int getDays() {
-        return days;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-}
-

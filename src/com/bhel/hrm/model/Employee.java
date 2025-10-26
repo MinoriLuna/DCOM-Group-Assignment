@@ -1,7 +1,5 @@
 package com.bhel.hrm.model;
 
-import com.bhel.hrm.client.LeaveApplication;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,16 +23,46 @@ public class Employee implements Serializable {
     }
 
     // getters/setters
-    public String getIcNumber() { return icNumber; }
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public Map<String,String> getFamilyDetails() { return familyDetails; }
-    public void setFamilyDetails(Map<String,String> familyDetails) { this.familyDetails = familyDetails; }
-    public int getLeaveBalance() { return leaveBalance; }
-    public void setLeaveBalance(int leaveBalance) { this.leaveBalance = leaveBalance; }
-    public List<LeaveApplication> getLeaveHistory() { return leaveHistory; }
-    public void addLeaveApplication(LeaveApplication app) { this.leaveHistory.add(app); }
-}
+    public String getIcNumber() {
+        return icNumber; }
 
+    public String getFirstName() {
+        return firstName; }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName; }
+
+    public String getLastName() {
+        return lastName; }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName; }
+
+    public Map<String,String> getFamilyDetails() {
+        return familyDetails; }
+
+    public void setFamilyDetails(Map<String,String> familyDetails) {
+        this.familyDetails = familyDetails; }
+
+    public int getLeaveBalance() {
+        return leaveBalance; }
+
+    public void setLeaveBalance(int leaveBalance) {
+        this.leaveBalance = leaveBalance; }
+
+    public List<LeaveApplication> getLeaveHistory() {
+        return leaveHistory; }
+
+    public void addLeaveApplication(LeaveApplication app) {
+        this.leaveHistory.add(app); }
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "icNumber='" + icNumber + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", leaveBalance=" + leaveBalance +
+                '}';
+    }
+}

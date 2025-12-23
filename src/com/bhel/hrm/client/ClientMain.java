@@ -12,6 +12,8 @@ import java.util.Scanner;
 public class ClientMain {
     public static void main(String[] args) {
         try {
+            System.setProperty("javax.net.ssl.trustStore", "keystore.jks");
+            System.setProperty("javax.net.ssl.trustStorePassword", "password123");
             // Connect to the registry
             Registry reg = LocateRegistry.getRegistry("localhost", 1099);
             HRMService svc = (HRMService) reg.lookup("HRMService");

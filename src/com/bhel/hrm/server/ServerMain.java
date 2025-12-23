@@ -8,9 +8,9 @@ import java.rmi.registry.Registry;
 public class ServerMain {
     public static void main(String[] args) {
         try {
-            // Optional: set keystore/truststore system properties before starting for SSL (see README)
-            // System.setProperty("javax.net.ssl.keyStore", "serverkeystore.jks");
-            // System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
+            // Set keystore/truststore system properties before starting for SSL
+            System.setProperty("javax.net.ssl.keyStore", "keystore.jks");
+            System.setProperty("javax.net.ssl.keyStorePassword", "password123");
 
             HRMService service = new HRMServiceImpl();
 

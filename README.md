@@ -55,3 +55,5 @@ DTO / model requirements
 Employee (Serializable): ic/passport, firstName, lastName, leaveBalance, familyDetails, leaveHistory
 LeaveApplication (Serializable): id, appliedOn, days, status
 User (Serializable or DB row): username, password, role (HR / EMPLOYEE)
+
+SSL : password123

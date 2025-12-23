@@ -8,6 +8,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Map;
 import java.util.Scanner;
+import javax.rmi.ssl.SslRMIClientSocketFactory;
 
 public class ClientMain {
     public static void main(String[] args) {
@@ -15,7 +16,11 @@ public class ClientMain {
             System.setProperty("javax.net.ssl.trustStore", "keystore.jks");
             System.setProperty("javax.net.ssl.trustStorePassword", "password123");
             // Connect to the registry
-            Registry reg = LocateRegistry.getRegistry("localhost", 1099);
+            Registry reg = LocateRegistry.getRegistry(
+                    "localhost",
+                    1099,
+                    new SslRMIClientSocketFactory()
+            );
             HRMService svc = (HRMService) reg.lookup("HRMService");
 
             Scanner sc = new Scanner(System.in);

@@ -1,66 +1,57 @@
 # DCOM-Group-Assignment (minimal RMI base)
 
-Minimal Java RMI skeleton for HRM (register, update, apply leave, report).
+Functional requirements (what the system must do)
 
-Quick compile & run (javac/jar or from IDE):
-1. Compile:
-   - From project root:
-     javac -d out src\com\bhel\hrm\**\*.java
+HR client must be able to:
 
-2. Run server:
-   - Start (option A) rmiregistry manually in project root:
-       start rmiregistry 1099
-     then:
-       java -cp out com.bhel.hrm.server.ServerMain
-   - Or (option B) just run ServerMain which creates registry programmatically.
+Authenticate/login as HR.
+Register a new employee with: First Name, Last Name, IC/Passport number (unique).
+Update an employee profile (name, contact fields).
+Add / update employee family details.
+View an employee’s leave balance and leave history.
+Generate a yearly report for an employee (profile + family details + leave history) and view it as text.
+(Optional minimal) Approve or reject leave requests.
+Employee client must be able to:
 
-3. Run client:
-   java -cp out com.bhel.hrm.client.ClientMain
+Authenticate/login as Employee.
+View and update own profile (first name, last name, contact).
+Add / update own family details.
+View current leave balance.
+Apply for leave (specify dates or number of days).
+Check status of own leave application (PENDING / APPROVED / REJECTED).
+Shared server functionality (RMI service) must:
 
-Enabling SSL (notes):
-- This minimal base is NOT using RMI SSL socket factories by default.
-- To secure communication you can:
-  1. Create a keystore/truststore (keytool) for server/client.
-  2. Implement RMIServerSocketFactory and RMIClientSocketFactory using SSLSocketFactory, or use third-party helpers.
-  3. Set system properties before binding/lookup:
-       -Djavax.net.ssl.keyStore=serverkeystore.jks -Djavax.net.ssl.keyStorePassword=changeit
-       -Djavax.net.ssl.trustStore=clienttruststore.jks -Djavax.net.ssl.trustStorePassword=changeit
-- References:
-  - Oracle guide: "Custom Socket Factories" for RMI with SSL.
+Expose remote methods for all the client actions above (registerEmployee, updateProfile, getEmployee, applyLeave, getLeaveStatus, getLeaveHistory, generateYearlyReport, login).
+Validate inputs and return success/failure results with clear messages or codes.
+Persist all data (employees, family details, users, leaves) to a centralized database.
+Persistence / database requirements
 
-Next steps you may implement:
-- Persistence (JDBC/SQLite), GUI, full report export, authentication, keystore creation script, unit tests, and a Gantt chart & report as required by the assignment.
+Use an embedded file-based DB (H2) or chosen DB.
+Required tables: users, employees, family_members (or key/value in employees), leaves.
+Data must persist across server restarts.
+Security requirements
 
-Small Java RMI-based HRM prototype for the BHEL assignment.
+Require authentication for both HR and Employee operations (username/password).
+At minimum: server-side authentication check for each request.
+For minimal deliverable SSL/TLS is optional; for higher marks:
+Secure RMI transport using SSL/TLS (keystore/truststore) or recommend TLS for future.
+Store passwords securely (recommend hashing — bcrypt) — plain text acceptable for minimal demo but note limitation in report.
+Concurrency / fault-tolerance requirements
 
-Summary
-- Java RMI server and clients to manage basic HR tasks (start with a minimal RMI check).
-- Embedded H2 database for persistence (easy setup).
-- Use IntelliJ + Maven.
+Server must handle concurrent client calls (RMI concurrent requests).
+Use thread-safe structures or DB transactions to avoid race conditions on leave balance updates.
+Persisted data must allow recovery after server crash/restart.
+API / RMI contract requirements (example minimal remote methods)
 
-Quick setup (local)
-1. Clone the repo (after you create it on GitHub) and open in IntelliJ.
-2. Build: mvn clean package
-3. Run the server:
-   - Run server.server.ServerMain from IntelliJ (or `mvn exec:java` if configured).
-4. Run the client:
-   - Run client.client.ClientMain from IntelliJ.
+boolean login(String username, String password)
+boolean registerEmployee(Employee emp)
+boolean updateProfile(Employee emp)
+Employee getEmployee(String icNumber)
+LeaveApplication applyLeave(String icNumber, int days)
+LeaveApplication getLeaveStatus(String requestId) or getLeaveHistory(String icNumber)
+String generateYearlyReport(String icNumber)
+DTO / model requirements
 
-What this repo should contain
-- src/main/java/common — RMI interfaces and DTOs
-- src/main/java/server — RMI server implementation
-- src/main/java/client — client implementations (HR and Employee)
-- pom.xml — Maven build (H2 dependency included)
-- docs/ — diagrams, use-cases, Gantt chart (add later)
-
-Next development steps
-- Replace the sample Hello service with HR service interfaces (registerEmployee, applyLeave, checkLeave, etc.).
-- Implement persistence using H2 (JDBC + DAO layer).
-- Add basic authentication and then secure RMI with SSL (keystore).
-- Add unit and integration tests.
-
-Authors and contribution
-- Created by: MinoriLuna (team members should add names and workload matrix in docs/)
-
-License
-- Add a license file if required (MIT recommended for coursework).
+Employee (Serializable): ic/passport, firstName, lastName, leaveBalance, familyDetails, leaveHistory
+LeaveApplication (Serializable): id, appliedOn, days, status
+User (Serializable or DB row): username, password, role (HR / EMPLOYEE)

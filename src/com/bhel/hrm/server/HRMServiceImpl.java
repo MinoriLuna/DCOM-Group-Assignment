@@ -18,25 +18,19 @@ public class HRMServiceImpl extends UnicastRemoteObject implements HRMService {
     private static final long serialVersionUID = 1L;
 
     // We use this file to save our data. It acts like a simple database.
-    // If we restart the server, we can read this file to get our data back.
     private static final String FILE_NAME = "hrm_data.ser";
 
     // This map holds all the employee data in memory while the server is running.
-    // We use 'ConcurrentHashMap' because it's safer when multiple people use the system at once.
     private Map<String, Employee> store = new ConcurrentHashMap<>();
 
     protected HRMServiceImpl() throws RemoteException {
-        // SECURITY UPDATE:
-        // The '0' lets the system pick a random port.
+
         // The important part is the SSL factories—this forces the connection to be encrypted.
         super(0, new SslRMIClientSocketFactory(), new SslRMIServerSocketFactory());
-
-        // When the server starts, try to load any existing data from the file.
         loadData();
     }
 
-    // --- Helper Methods to Save and Load Data ---
-
+    // Methods to save and load data
     private void saveData() {
         // This method saves the entire 'store' map to a file on your hard drive.
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME))) {
@@ -70,9 +64,8 @@ public class HRMServiceImpl extends UnicastRemoteObject implements HRMService {
         // Check if the input is valid
         if (emp == null || emp.getIcNumber() == null) return false;
 
-        // Try to add the employee.
+        // Adding the employee.
         // putIfAbsent returns null if the key (IC Number) didn't exist before (Success).
-        // If it returns something, it means that ID is already taken.
         if (store.putIfAbsent(emp.getIcNumber(), emp) == null) {
             saveData(); // Save changes immediately
             return true;
@@ -101,13 +94,9 @@ public class HRMServiceImpl extends UnicastRemoteObject implements HRMService {
     @Override
     public LeaveApplication applyLeave(String icNumber, int days) throws RemoteException {
         Employee e = store.get(icNumber);
-        if (e == null) return null; // Employee doesn't exist
+        if (e == null) return null; // Validation for employee
 
         LeaveApplication app = new LeaveApplication(days);
-
-        // THREAD SAFETY:
-        // We use 'synchronized' here. This locks the employee object for a split second.
-        // It prevents two requests from subtracting leave balance at the exact same time.
         synchronized (e) {
             if (e.getLeaveBalance() >= days) {
                 e.setLeaveBalance(e.getLeaveBalance() - days);
@@ -130,7 +119,6 @@ public class HRMServiceImpl extends UnicastRemoteObject implements HRMService {
 
     @Override
     public String generateYearlyReport(String icNumber) throws RemoteException {
-        // This creates a nice text report to send back to the client.
         Employee e = store.get(icNumber);
         if (e == null) return "Employee not found";
 

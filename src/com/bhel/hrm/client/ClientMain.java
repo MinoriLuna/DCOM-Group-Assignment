@@ -13,20 +13,19 @@ import javax.rmi.ssl.SslRMIClientSocketFactory;
 public class ClientMain {
     public static void main(String[] args) {
         try {
-            // 1. Trust Setup
-            // Since our cert is self-signed (not official), we have to tell the client to trust it.
+            // Setting SSL Properties
             System.setProperty("javax.net.ssl.trustStore", "keystore.jks");
             System.setProperty("javax.net.ssl.trustStorePassword", "password123");
 
-            // 2. Connect to Registry
-            // Important: We need the SslRMIClientSocketFactory so we speak SSL to the server.
+            // Connect to Registry
+            // SslRMIClientSocketFactory so we speak SSL to the server.
             Registry reg = LocateRegistry.getRegistry(
                     "localhost",
                     1099,
                     new SslRMIClientSocketFactory()
             );
 
-            // 3. Lookup Service
+            // Lookup Service
             // Grab the "HRMService" object from the registry so we can use it.
             HRMService svc = (HRMService) reg.lookup("HRMService");
 
@@ -34,13 +33,13 @@ public class ClientMain {
             System.out.println("--- BHEL HRM Distributed System ---");
             System.out.println("Commands: register, get, update, family, apply, report, exit");
 
-            // Loop to keep asking for commands
+            // Loop for main CLI
             while (true) {
                 System.out.print("\nCommand > ");
                 String cmd = sc.next();
 
+                // Register
                 if ("register".equalsIgnoreCase(cmd)) {
-                    // Get input from user
                     System.out.print("IC Number: ");
                     String ic = sc.next();
                     System.out.print("First Name: ");
@@ -48,29 +47,42 @@ public class ClientMain {
                     System.out.print("Last Name: ");
                     String ln = sc.next();
 
-                    // Create object and send it to the server
+                    //Validation response
                     Employee e = new Employee(ic, fn, ln);
                     boolean ok = svc.registerEmployee(e);
                     System.out.println(ok ? ">> Success: Registered." : ">> Error: Already exists.");
 
+                    // Get details of employee
                 } else if ("get".equalsIgnoreCase(cmd)) {
-                    // Ask server for an employee
                     System.out.print("IC Number: ");
                     String ic = sc.next();
                     Employee e = svc.getEmployee(ic);
+
                     if (e == null) {
                         System.out.println(">> Not found.");
                     } else {
                         System.out.println(">> Found: " + e.getFirstName() + " " + e.getLastName());
                         System.out.println("   Leave Balance: " + e.getLeaveBalance());
-                        System.out.println("   Family Details: " + e.getFamilyDetails());
+
+                        // --- NEW PRETTY PRINTING CODE ---
+                        Map<String, String> family = e.getFamilyDetails();
+                        if (family.isEmpty()) {
+                            System.out.println("   Family Details: (None)");
+                        } else {
+                            System.out.println("   Family Details:");
+                            // Loop through every family member and print them on a new line
+                            for (Map.Entry<String, String> entry : family.entrySet()) {
+                                System.out.println("     - " + entry.getKey() + ": " + entry.getValue());
+                            }
+                        }
                     }
 
+                    // Update
                 } else if ("update".equalsIgnoreCase(cmd)) {
-                    // Get data, modify it, send it back
                     System.out.print("IC Number to update: ");
                     String ic = sc.next();
                     Employee e = svc.getEmployee(ic);
+                    //Validation check
                     if (e == null) {
                         System.out.println(">> Employee not found.");
                     } else {
@@ -87,22 +99,40 @@ public class ClientMain {
                     System.out.print("IC Number: ");
                     String ic = sc.next();
                     Employee e = svc.getEmployee(ic);
-                    // ... (skipping input code) ...
-                    svc.updateProfile(e);
-                    System.out.println(">> Family details updated.");
 
+                    if (e == null) {
+                        System.out.println(">> Employee not found.");
+                    } else {
+                        // Ask for family details
+                        System.out.print("Relationship (e.g. Spouse/Mother): ");
+                        String relation = sc.next();
+
+                        System.out.print("Name: ");
+                        String name = sc.next();
+
+                        // Update the map inside the Employee object
+                        Map<String, String> details = e.getFamilyDetails();
+                        details.put(relation, name);
+                        e.setFamilyDetails(details);
+
+                        svc.updateProfile(e);
+                        System.out.println(">> Family details updated.");
+                    }
+
+                    // Approve leave
                 } else if ("apply".equalsIgnoreCase(cmd)) {
-                    // Ask server to approve leave
                     System.out.print("IC Number: ");
                     String ic = sc.next();
+
                     System.out.print("Days to apply: ");
                     int d = sc.nextInt();
+
                     LeaveApplication la = svc.applyLeave(ic, d);
                     if (la == null) System.out.println(">> Employee not found.");
                     else System.out.println(">> Application Status: " + la.getStatus());
 
+                    // Get the report from server and print it
                 } else if ("report".equalsIgnoreCase(cmd)) {
-                    // Get the report string from server and print it
                     System.out.print("IC Number: ");
                     String ic = sc.next();
                     String r = svc.generateYearlyReport(ic);

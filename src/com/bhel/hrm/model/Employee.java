@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// Constructors and getters/setters
 public class Employee implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -13,7 +14,7 @@ public class Employee implements Serializable {
     private String firstName;
     private String lastName;
     private Map<String,String> familyDetails = new HashMap<>(); // simple key->value
-    private int leaveBalance = 20; // default annual balance
+    private int leaveBalance = 25; // default annual balance
     private List<LeaveApplication> leaveHistory = new ArrayList<>();
 
     public Employee(String icNumber, String firstName, String lastName) {

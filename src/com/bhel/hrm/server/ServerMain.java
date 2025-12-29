@@ -18,8 +18,7 @@ public class ServerMain {
             HRMService service = new HRMServiceImpl();
 
             // Create the Registry
-            // We use these SSL factories here.
-            // This forces the registry to use encryption so hackers can't see the data.
+            // Using SSL forces the registry to use encryption so hackers can't see the data.
             Registry reg = LocateRegistry.createRegistry(
                     1099,
                     new SslRMIClientSocketFactory(),

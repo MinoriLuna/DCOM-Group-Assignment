@@ -17,12 +17,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HRMServiceImpl extends UnicastRemoteObject implements HRMService {
     private static final long serialVersionUID = 1L;
 
-    // We use this file to save our data. It acts like a simple database.
+    // We use this file to save our data
     private static final String FILE_NAME = "hrm_data.ser";
 
-    // This map holds all the employee data in memory while the server is running.
+    // This map holds all the employee data in memory while the server is running
     private Map<String, Employee> store = new ConcurrentHashMap<>();
-
     protected HRMServiceImpl() throws RemoteException {
 
         // The important part is the SSL factories—this forces the connection to be encrypted.

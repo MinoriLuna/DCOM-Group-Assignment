@@ -11,144 +11,226 @@ import java.util.Scanner;
 import javax.rmi.ssl.SslRMIClientSocketFactory;
 
 public class ClientMain {
+
+    private static Scanner sc = new Scanner(System.in);
+
     public static void main(String[] args) {
         try {
-            // Setting SSL Properties
+            System.out.println(">> Initializing Client Security Context...");
+
+            // SSL Configuration (TrustStore)
             System.setProperty("javax.net.ssl.trustStore", "keystore.jks");
             System.setProperty("javax.net.ssl.trustStorePassword", "password123");
 
-            // Connect to Registry
-            // SslRMIClientSocketFactory so we speak SSL to the server.
+            // Connect to Registry using SSL
             Registry reg = LocateRegistry.getRegistry(
                     "localhost",
                     1099,
                     new SslRMIClientSocketFactory()
             );
 
-            // Lookup Service
-            // Grab the "HRMService" object from the registry so we can use it.
+            // Lookup Service & Measure Latency
+            System.out.println(">> Connecting to Server...");
+            long start = System.currentTimeMillis();
+
+            // This 'lookup' is the actual network call we want to measure
             HRMService svc = (HRMService) reg.lookup("HRMService");
 
-            Scanner sc = new Scanner(System.in);
-            System.out.println("--- BHEL HRM Distributed System ---");
-            System.out.println("Commands: register, get, update, family, apply, report, exit");
+            long end = System.currentTimeMillis();
+            System.out.println(">> Connection Established! Latency: " + (end - start) + "ms");
+            System.out.println("------------------------------------------------");
+            printMenu();
 
-            // Loop for main CLI
+            // Main Loop
             while (true) {
                 System.out.print("\nCommand > ");
-                String cmd = sc.next();
+                String cmd = sc.next().toLowerCase(); // Convert to lowercase to handle inputs like "EXIT"
 
-                // Register
-                if ("register".equalsIgnoreCase(cmd)) {
-                    System.out.print("IC Number: ");
-                    String ic = sc.next();
-                    System.out.print("First Name: ");
-                    String fn = sc.next();
-                    System.out.print("Last Name: ");
-                    String ln = sc.next();
-
-                    //Validation response
-                    Employee e = new Employee(ic, fn, ln);
-                    boolean ok = svc.registerEmployee(e);
-                    System.out.println(ok ? ">> Success: Registered." : ">> Error: Already exists.");
-
-                    // Get details of employee
-                } else if ("get".equalsIgnoreCase(cmd)) {
-                    System.out.print("IC Number: ");
-                    String ic = sc.next();
-                    Employee e = svc.getEmployee(ic);
-
-                    if (e == null) {
-                        System.out.println(">> Not found.");
-                    } else {
-                        System.out.println(">> Found: " + e.getFirstName() + " " + e.getLastName());
-                        System.out.println("   Leave Balance: " + e.getLeaveBalance());
-
-                        // --- NEW PRETTY PRINTING CODE ---
-                        Map<String, String> family = e.getFamilyDetails();
-                        if (family.isEmpty()) {
-                            System.out.println("   Family Details: (None)");
-                        } else {
-                            System.out.println("   Family Details:");
-                            // Loop through every family member and print them on a new line
-                            for (Map.Entry<String, String> entry : family.entrySet()) {
-                                System.out.println("     - " + entry.getKey() + ": " + entry.getValue());
-                            }
-                        }
-                    }
-
-                    // Update
-                } else if ("update".equalsIgnoreCase(cmd)) {
-                    System.out.print("IC Number to update: ");
-                    String ic = sc.next();
-                    Employee e = svc.getEmployee(ic);
-                    //Validation check
-                    if (e == null) {
-                        System.out.println(">> Employee not found.");
-                    } else {
-                        System.out.print("New First Name: ");
-                        e.setFirstName(sc.next());
-                        System.out.print("New Last Name: ");
-                        e.setLastName(sc.next());
-                        boolean ok = svc.updateProfile(e);
-                        System.out.println(ok ? ">> Profile Updated." : ">> Update failed.");
-                    }
-
-                } else if ("family".equalsIgnoreCase(cmd)) {
-                    // Update family map inside the employee object
-                    System.out.print("IC Number: ");
-                    String ic = sc.next();
-                    Employee e = svc.getEmployee(ic);
-
-                    if (e == null) {
-                        System.out.println(">> Employee not found.");
-                    } else {
-                        // Ask for family details
-                        System.out.print("Relationship (e.g. Spouse/Mother): ");
-                        String relation = sc.next();
-
-                        System.out.print("Name: ");
-                        String name = sc.next();
-
-                        // Update the map inside the Employee object
-                        Map<String, String> details = e.getFamilyDetails();
-                        details.put(relation, name);
-                        e.setFamilyDetails(details);
-
-                        svc.updateProfile(e);
-                        System.out.println(">> Family details updated.");
-                    }
-
-                    // Approve leave
-                } else if ("apply".equalsIgnoreCase(cmd)) {
-                    System.out.print("IC Number: ");
-                    String ic = sc.next();
-
-                    System.out.print("Days to apply: ");
-                    int d = sc.nextInt();
-
-                    LeaveApplication la = svc.applyLeave(ic, d);
-                    if (la == null) System.out.println(">> Employee not found.");
-                    else System.out.println(">> Application Status: " + la.getStatus());
-
-                    // Get the report from server and print it
-                } else if ("report".equalsIgnoreCase(cmd)) {
-                    System.out.print("IC Number: ");
-                    String ic = sc.next();
-                    String r = svc.generateYearlyReport(ic);
-                    System.out.println("---------------- REPORT ----------------");
-                    System.out.println(r);
-                    System.out.println("----------------------------------------");
-
-                } else if ("exit".equalsIgnoreCase(cmd)) {
-                    break;
-                } else {
-                    System.out.println(">> Unknown command.");
+                switch (cmd) {
+                    case "register":
+                        handleRegister(svc);
+                        break;
+                    case "get":
+                        handleGet(svc);
+                        break;
+                    case "update":
+                        handleUpdate(svc);
+                        break;
+                    case "family":
+                        handleFamilyUpdate(svc);
+                        break;
+                    case "payslip":
+                        handlePayslip(svc);
+                        break;
+                    case "apply":
+                        handleLeaveApplication(svc);
+                        break;
+                    case "report":
+                        handleReport(svc);
+                        break;
+                    case "menu":
+                        printMenu();
+                        break;
+                    case "exit":
+                        System.out.println(">> Closing Secure Session...");
+                        System.out.println(">> Goodbye!");
+                        System.exit(0);
+                    default:
+                        System.out.println(">> Unknown command. Type 'menu' to see options.");
                 }
             }
-            sc.close();
         } catch (Exception ex) {
+            System.err.println("Client Error: " + ex.getMessage());
             ex.printStackTrace();
+        } finally {
+            sc.close();
         }
+    }
+
+    private static void printMenu() {
+        System.out.println("=========================================");
+        System.out.println("      BHEL SECURE HRM SYSTEM (v1.0)      ");
+        System.out.println("=========================================");
+        System.out.println(" [register] Register New Employee");
+        System.out.println(" [apply]    Apply for Leave");
+        System.out.println(" [get]      Check Leave Balance / Info");
+        System.out.println(" [family]   Update Family Info");
+        System.out.println(" [update]   Update Name/Profile");
+        System.out.println(" [payslip]  Generate Payslip (PRS)");
+        System.out.println(" [report]   Generate Yearly Report");
+        System.out.println(" [exit]     Exit System");
+        System.out.println("=========================================");
+    }
+
+    // Main methods
+    private static void handleRegister(HRMService svc) {
+        System.out.println("=== New Employee Registration ===");
+        String ic = "";
+
+        // Loop until valid IC
+        while (true) {
+            System.out.print("IC Number: ");
+            ic = sc.next();
+            if (ic.matches("\\d{12}")) {
+                break;
+            } else {
+                System.out.println(">> Invalid Format! IC must be exactly 12 numbers.");
+            }
+        }
+
+        System.out.print("First Name: ");
+        String fn = sc.next();
+        System.out.print("Last Name: ");
+        String ln = sc.next();
+
+        try {
+            Employee e = new Employee(ic, fn, ln);
+            boolean ok = svc.registerEmployee(e);
+            System.out.println(ok ? ">> Success: Registered." : ">> Error: ID already exists.");
+        } catch (Exception ex) {
+            System.out.println(">> Error contacting server: " + ex.getMessage());
+        }
+    }
+
+    private static void handleGet(HRMService svc) throws Exception {
+        System.out.print("IC Number: ");
+        String ic = sc.next();
+        Employee e = svc.getEmployee(ic);
+
+        if (e == null) {
+            System.out.println(">> Employee not found.");
+        } else {
+            System.out.println(">> Found: " + e.getFirstName() + " " + e.getLastName());
+            System.out.println("   Leave Balance: " + e.getLeaveBalance());
+
+            Map<String, String> family = e.getFamilyDetails();
+            if (family == null || family.isEmpty()) {
+                System.out.println("   Family Details: (None)");
+            } else {
+                System.out.println("   Family Details:");
+                for (Map.Entry<String, String> entry : family.entrySet()) {
+                    System.out.println("     - " + entry.getKey() + ": " + entry.getValue());
+                }
+            }
+        }
+    }
+
+    private static void handleUpdate(HRMService svc) throws Exception {
+        System.out.print("IC Number to update: ");
+        String ic = sc.next();
+        Employee e = svc.getEmployee(ic);
+
+        if (e == null) {
+            System.out.println(">> Employee not found.");
+        } else {
+            System.out.print("New First Name: ");
+            e.setFirstName(sc.next());
+            System.out.print("New Last Name: ");
+            e.setLastName(sc.next());
+
+            boolean ok = svc.updateProfile(e);
+            System.out.println(ok ? ">> Profile Updated." : ">> Update failed.");
+        }
+    }
+
+    private static void handleFamilyUpdate(HRMService svc) throws Exception {
+        System.out.print("IC Number: ");
+        String ic = sc.next();
+        Employee e = svc.getEmployee(ic);
+
+        if (e == null) {
+            System.out.println(">> Employee not found.");
+        } else {
+            System.out.print("Relationship (e.g. Spouse/Mother): ");
+            String relation = sc.next();
+            System.out.print("Name: ");
+            String name = sc.next();
+
+            Map<String, String> details = e.getFamilyDetails();
+            details.put(relation, name);
+            e.setFamilyDetails(details);
+
+            svc.updateProfile(e);
+            System.out.println(">> Family details updated.");
+        }
+    }
+
+    private static void handlePayslip(HRMService svc) {
+        System.out.print("Enter IC Number for Payroll: ");
+        String ic = sc.next();
+        try {
+            String slip = svc.generatePayslip(ic);
+            System.out.println(slip);
+        } catch (Exception e) {
+            System.out.println("Error contacting PRS: " + e.getMessage());
+        }
+    }
+
+    private static void handleLeaveApplication(HRMService svc) throws Exception {
+        System.out.print("IC Number: ");
+        String ic = sc.next();
+        System.out.print("Days to apply: ");
+
+        if (sc.hasNextInt()) {
+            int d = sc.nextInt();
+            LeaveApplication la = svc.applyLeave(ic, d);
+            if (la == null) {
+                System.out.println(">> Employee not found.");
+            } else {
+                System.out.println(">> Application Status: " + la.getStatus());
+            }
+        } else {
+            System.out.println(">> Invalid input. Please enter a number.");
+            sc.next(); // Clear invalid input
+        }
+    }
+
+    private static void handleReport(HRMService svc) throws Exception {
+        System.out.print("IC Number: ");
+        String ic = sc.next();
+        String r = svc.generateYearlyReport(ic);
+        System.out.println("---------------- REPORT ----------------");
+        System.out.println(r);
+        System.out.println("----------------------------------------");
     }
 }

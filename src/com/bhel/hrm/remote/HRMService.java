@@ -14,5 +14,6 @@ public interface HRMService extends Remote {
     LeaveApplication applyLeave(String icNumber, int days) throws RemoteException;
     List<LeaveApplication> getLeaveHistory(String icNumber) throws RemoteException;
     String generateYearlyReport(String icNumber) throws RemoteException; // returns plain text report
+    String generatePayslip(String ic) throws RemoteException;
 }
 

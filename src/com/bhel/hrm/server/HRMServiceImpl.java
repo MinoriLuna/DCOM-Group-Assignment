@@ -64,7 +64,6 @@ public class HRMServiceImpl extends UnicastRemoteObject implements HRMService {
         if (emp == null || emp.getIcNumber() == null) return false;
 
         // Adding the employee.
-        // putIfAbsent returns null if the key (IC Number) didn't exist before (Success).
         if (store.putIfAbsent(emp.getIcNumber(), emp) == null) {
             saveData(); // Save changes immediately
             return true;
@@ -114,6 +113,33 @@ public class HRMServiceImpl extends UnicastRemoteObject implements HRMService {
         Employee e = store.get(icNumber);
         // If employee exists, return their history list. Otherwise return null.
         return e != null ? e.getLeaveHistory() : null;
+    }
+
+    @Override
+    public String generatePayslip(String ic) throws RemoteException {
+        Employee e = store.get(ic);
+        if (e == null) return "Error: Employee not found.";
+
+        // Assume everyone has a base salary of RM 3,000
+        int baseSalary = 3000;
+        int daysTaken = 25 - e.getLeaveBalance();
+        int deduction = daysTaken * 100;
+        int netSalary = baseSalary - deduction;
+
+        // Proving communication happened
+        System.out.println("[PRS System] Securely processing payroll for: " + ic);
+        System.out.println("[PRS System] Calculating deductions based on Leave History...");
+
+        return String.format(
+                "=== BHEL SECURE PAYSLIP ===\n" +
+                        "Name: %s %s\n" +
+                        "Base Salary: RM %d\n" +
+                        "Leave Deductions: -RM %d (Days Taken: %d)\n" +
+                        "---------------------------\n" +
+                        "NET PAY: RM %d\n" +
+                        "===========================",
+                e.getFirstName(), e.getLastName(), baseSalary, deduction, daysTaken, netSalary
+        );
     }
 
     @Override

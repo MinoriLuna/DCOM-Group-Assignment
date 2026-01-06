@@ -88,21 +88,17 @@ public class ClientMain {
 
                 switch (cmd) {
                     case "register":
-                        // RESTRICTION: Only HR can register
+                        //Only HR can register
                         if (checkPermission("HR")) handleRegister(svc);
                         break;
                     case "get":
-                        // Both can view (Employees view themselves, HR views anyone)
                         handleGet(svc);
                         break;
                     case "update":
-                        // RESTRICTION: Only HR can update profiles
                         if (checkPermission("HR")) handleUpdate(svc);
                         break;
                     case "family":
-                        // RESTRICTION: Only HR can update family (per your old requirements)
-                        // If you want Employees to do this, remove the check.
-                        if (checkPermission("HR")) handleFamilyUpdate(svc);
+                        handleFamilyUpdate(svc);
                         break;
                     case "payslip":
                         handlePayslip(svc);
@@ -111,7 +107,7 @@ public class ClientMain {
                         handleLeaveApplication(svc);
                         break;
                     case "report":
-                        // RESTRICTION: Only HR can generate full reports
+                        // Only HR can generate full reports
                         if (checkPermission("HR")) handleReport(svc);
                         break;
                     case "menu":

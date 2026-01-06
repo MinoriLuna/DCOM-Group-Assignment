@@ -13,6 +13,7 @@ import javax.rmi.ssl.SslRMIClientSocketFactory;
 public class ClientMain {
 
     private static Scanner sc = new Scanner(System.in);
+    private static String userRole = "";
 
     public static void main(String[] args) {
         try {
@@ -29,35 +30,79 @@ public class ClientMain {
                     new SslRMIClientSocketFactory()
             );
 
-            // Lookup Service & Measure Latency
             System.out.println(">> Connecting to Server...");
             long start = System.currentTimeMillis();
-
-            // This 'lookup' is the actual network call we want to measure
             HRMService svc = (HRMService) reg.lookup("HRMService");
 
             long end = System.currentTimeMillis();
             System.out.println(">> Connection Established! Latency: " + (end - start) + "ms");
             System.out.println("------------------------------------------------");
+
+            //Login Menu
+            boolean isLoggedIn = false;
+
+            while (!isLoggedIn) {
+                System.out.println("\n=== BHEL SYSTEM LOGIN ===");
+                System.out.println("1. HR Manager (Admin Access)");
+                System.out.println("2. Employee (Restricted Access)");
+                System.out.print("Select Role > ");
+                String choice = sc.next();
+
+                if (choice.equals("1")) {
+                    System.out.print("Enter Admin Password: ");
+                    String pass = sc.next();
+                    if (pass.equals("admin123")) {
+                        isLoggedIn = true;
+                        userRole = "HR";
+                        System.out.println(">> LOGIN SUCCESS: Welcome, HR Manager.");
+                    } else {
+                        System.out.println(">> Error: Wrong Password.");
+                    }
+
+                } else if (choice.equals("2")) {
+                    System.out.print("Enter your IC Number: ");
+                    String ic = sc.next();
+
+                    // Verify if user exists on server
+                    Employee e = svc.getEmployee(ic);
+                    if (e != null) {
+                        isLoggedIn = true;
+                        userRole = "Employee";
+                        System.out.println(">> LOGIN SUCCESS: Welcome, " + e.getFirstName());
+                    } else {
+                        System.out.println(">> Error: IC not found. Please contact HR.");
+                    }
+
+                } else {
+                    System.out.println(">> Invalid option.");
+                }
+            }
+
             printMenu();
 
             // Main Loop
             while (true) {
-                System.out.print("\nCommand > ");
-                String cmd = sc.next().toLowerCase(); // Convert to lowercase to handle inputs like "EXIT"
+                System.out.print("\n[" + userRole + "] Command > ");
+                ;
+                String cmd = sc.next().toLowerCase(); // Convert to lowercase
 
                 switch (cmd) {
                     case "register":
-                        handleRegister(svc);
+                        // RESTRICTION: Only HR can register
+                        if (checkPermission("HR")) handleRegister(svc);
                         break;
                     case "get":
+                        // Both can view (Employees view themselves, HR views anyone)
                         handleGet(svc);
                         break;
                     case "update":
-                        handleUpdate(svc);
+                        // RESTRICTION: Only HR can update profiles
+                        if (checkPermission("HR")) handleUpdate(svc);
                         break;
                     case "family":
-                        handleFamilyUpdate(svc);
+                        // RESTRICTION: Only HR can update family (per your old requirements)
+                        // If you want Employees to do this, remove the check.
+                        if (checkPermission("HR")) handleFamilyUpdate(svc);
                         break;
                     case "payslip":
                         handlePayslip(svc);
@@ -66,7 +111,8 @@ public class ClientMain {
                         handleLeaveApplication(svc);
                         break;
                     case "report":
-                        handleReport(svc);
+                        // RESTRICTION: Only HR can generate full reports
+                        if (checkPermission("HR")) handleReport(svc);
                         break;
                     case "menu":
                         printMenu();
@@ -84,6 +130,15 @@ public class ClientMain {
             ex.printStackTrace();
         } finally {
             sc.close();
+        }
+    }
+
+    private static boolean checkPermission(String requiredRole) {
+        if (userRole.equals(requiredRole)) {
+            return true;
+        } else {
+            System.out.println(">> ACCESS DENIED: This command is for " + requiredRole + " only.");
+            return false;
         }
     }
 

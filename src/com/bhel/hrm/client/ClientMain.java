@@ -38,7 +38,7 @@ public class ClientMain {
             System.out.println(">> Connection Established! Latency: " + (end - start) + "ms");
             System.out.println("------------------------------------------------");
 
-            //Login Menu
+            // Login Menu
             boolean isLoggedIn = false;
 
             while (!isLoggedIn) {
@@ -83,7 +83,6 @@ public class ClientMain {
             // Main Loop
             while (true) {
                 System.out.print("\n[" + userRole + "] Command > ");
-                ;
                 String cmd = sc.next().toLowerCase(); // Convert to lowercase
 
                 switch (cmd) {
@@ -169,10 +168,11 @@ public class ClientMain {
             }
         }
 
+        sc.nextLine();
         System.out.print("First Name: ");
-        String fn = sc.next();
+        String fn = sc.nextLine();
         System.out.print("Last Name: ");
-        String ln = sc.next();
+        String ln = sc.nextLine();
 
         try {
             Employee e = new Employee(ic, fn, ln);
@@ -214,10 +214,11 @@ public class ClientMain {
         if (e == null) {
             System.out.println(">> Employee not found.");
         } else {
+            sc.nextLine();
             System.out.print("New First Name: ");
-            e.setFirstName(sc.next());
+            e.setFirstName(sc.nextLine());
             System.out.print("New Last Name: ");
-            e.setLastName(sc.next());
+            e.setLastName(sc.nextLine());
 
             boolean ok = svc.updateProfile(e);
             System.out.println(ok ? ">> Profile Updated." : ">> Update failed.");
@@ -232,10 +233,12 @@ public class ClientMain {
         if (e == null) {
             System.out.println(">> Employee not found.");
         } else {
+            sc.nextLine();
             System.out.print("Relationship (e.g. Spouse/Mother): ");
-            String relation = sc.next();
+            String relation = sc.nextLine();
+
             System.out.print("Name: ");
-            String name = sc.next();
+            String name = sc.nextLine();
 
             Map<String, String> details = e.getFamilyDetails();
             details.put(relation, name);
